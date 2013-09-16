@@ -1,0 +1,73 @@
+@font-face {
+    font-family: 'Visitor';
+    src: url('/font/visitor1-webfont.eot');
+    src: url('/font/visitor1-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/font/visitor1-webfont.woff') format('woff'),
+         url('/font/visitor1-webfont.ttf') format('truetype'),
+         url('/font/visitor1-webfont.svg#visitor_tt1_brkregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@keyframes pulsation
+{
+    0%   { color: #36FF50; }
+    80%  { color: #D6FFDC; }
+    100% { color: #36FF50; }
+}
+
+@-webkit-keyframes pulsation
+{
+    0%   { color: #36FF50; }
+    80%  { color: #D6FFDC; }
+    100% { color: #36FF50; }
+}
+
+body {
+    background-color: rgb(16, 16, 16);
+    font-family: 'Visitor', Monospace;
+    overflow: hidden;
+}
+
+h1 {
+    color: white;
+    font-size: 40px;
+    text-align: center;
+    text-shadow: 0 0 3px black;
+    font-weight: normal;
+    animation: pulsation 1s ease-in-out;
+    animation-iteration-count: infinite; 
+    -webkit-animation: pulsation 5s ease-in-out;
+    -webkit-animation-iteration-count: infinite; 
+}
+
+
+canvas {
+    background-color: rgba(48, 48, 48);
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.3) inset;
+    display: block;
+    font-size: 20px;
+    margin: auto;
+    cursor: none;
+}
+
+footer ul {
+  color: #444;
+  text-align: center;
+  padding: 0;
+  list-style: none;
+}
+
+footer ul li {
+  display: inline-block;
+  margin: 0 10px;
+}
+
+footer ul a {
+  color: #555;
+  text-decoration: none;
+}
+
+footer ul a:hover {
+  color: #666;
+}

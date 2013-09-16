@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Invaders Invasion</title>
+        <meta name="viewport" content="width=device-width" />
+        <link rel="stylesheet" href="./stylesheets/style.css" />
+    </head>
+    <body>
+        <!--[if lte IE 9]>
+        <p class="chromeframe">Vous utilisez un navigateur dépassé. <a href="http://browsehappy.com/">Mettez-le à jour maintetant</a> ou <a href="http://www.google.com/chromeframe/?redirect=true">installez Google Chrome Frame</a> pour une meilleure expérience sur ce site.</p>
+        <![endif]-->
+        
+        <canvas id='gameCanvas' width='1024' height='800'>
+            <strong>Impossible d'utiliser l'élément <i>canvas</i></strong><br />
+            <p>Vous utilisez sans doute un navigateur dépassé. <a href="http://browsehappy.com/">Mettez-le à jour maintenant</a> pour pouvoir jouer correctement.</p>
+        </canvas>
+        
+        <!--<footer>
+          <ul>
+            <li>Created by Etienne Gauvin</li>
+            <li>Powered by <a href="http://gamvas.com/">Gamvas</a></li>
+          </ul>
+        </footer>-->
+        
+        <!-- Fichiers Javascript -->
+        <script src="./javascripts/fabric.js"></script>
+        <script src="./javascripts/box2dweb.js"></script>
+        <script src="./javascripts/gamvas.js"></script>
+        <script src="./javascripts/actors/area.js"></script>
+        <script src="./javascripts/actors/bullet.js"></script>
+        <script src="./javascripts/actors/disappearance-effect.js"></script>
+        <script src="./javascripts/actors/explosion.js"></script>
+        <script src="./javascripts/actors/ship.js"></script>
+        <script src="./javascripts/actors/playership.js"></script>
+        <script src="./javascripts/actors/basicship.js"></script>
+        <script src="./javascripts/actors/basicship2.js"></script>
+        <script src="./javascripts/actors/kamiship.js"></script>
+        <script src="./javascripts/actors/moderateiaship.js"></script>
+        <script src="./javascripts/actors/hardiaship.js"></script>
+        <script src="./javascripts/actors/pointer.js"></script>
+        <script src="./javascripts/states/menu.js"></script>
+        <script src="./javascripts/states/game.js"></script>
+        <script src="./javascripts/states/gameover.js"></script>
+        <script src="./javascripts/states/scores.js"></script>
+        <script src="./javascripts/main.js"></script>
+    </body>
+</html>

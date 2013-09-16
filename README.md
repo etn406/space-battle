@@ -5,7 +5,7 @@ Sous ce titre pas terrible, mais néanmoins explicite, se cache un mini-jeu méd
 
 Le but ? Tuer les hordes envahissantes d'envahisseurs venues envahir la Terre. C'est tout.
 Il n'y a ni pièces d'or, ni points de vie, ni points d'amélioration pour votre vaisseau, ni points tout court.
-Il suffit de garder la touche enfoncée et d'éviter les tirs ennemis.
+Il suffit de tirer en continu, et éviter les tirs ennemis.
 
 Mais bon, passons aux choses sérieuses : [Sauver la Terre MAINTENANT](http://ii.eu01.aws.af.cm/)
 

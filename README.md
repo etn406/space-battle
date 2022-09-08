@@ -1,13 +1,12 @@
-L'invasion des envahisseurs (de l'espace)
-=========================================
+Bataille interstellaire
+=======================
 
-Le titre n'est peut-être pas terrible, mais il est explicite.
+Le titre n'est pas terrible, mais il est explicite.
 
-Le but ? Tuer les hordes envahissantes d'envahisseurs venues envahir la Terre.
-Il n'y a ni pièces d'or, ni points de vie, ni points d'amélioration pour votre vaisseau, ni points tout court.
+Le but ? Tuer les hordes d'envahisseurs.
 Il suffit de tirer en continu, et éviter les tirs ennemis ;)
 
-[Passer au choses sérieuses](http://invasion-des-envahisseurs.glitch.zone/)
+[Passer au choses sérieuses](http://etn406.github.io/bataille-interstellaire )
 
 
 Commandes
@@ -19,8 +18,9 @@ Il est possible de voir les scores enregistrés sur votre ordianteur en appuyant
 
 Les couleurs sont aléatoires, et il est possible de changer la couleur de son vaisseau en cours de jeu avec *C* (maintenir appuyé)
 
-Il y a aussi des codes de triche, mais c'est pas drôle si je vous les donne ici. Ils sont [dans le javascript](https://github.com/etienne-gauvin/invasion-des-envahisseurs/blob/master/javascripts/states/game.js).
+La touche *K* active les "lasers" permettant de visualiser la visée de chaque ennemi, c'est à dire en direction du joueur avec un petit décalage en fonction de son déplacement.
 
+Changements
+-----------
 
-**J'espère que ce jeu vous amusera quelques minutes :)**
-
+J'ai développé ce petit jeu en 2013 et je repasse dessus aujourd'hui (2022) pour mettre à jour l'URL de jeu, la bibliothèque utilisée (Gambas) et corriger un bug bloquant.

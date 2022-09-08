@@ -1,26 +1,42 @@
-Bataille interstellaire
-=======================
+Space Battle
+============
 
-Le titre n'est pas terrible, mais il est explicite.
+It's a little game I made in 2013. Now (2022) I updated the game library and corrected a critical bug that prevented to play.
 
-Le but ? Tuer les hordes d'envahisseurs.
-Il suffit de tirer en continu, et éviter les tirs ennemis ;)
+[Play in your browser here](http://etn406.github.io/space-battle) but be aware that you need a mouse and a keyboard.
 
-[Passer au choses sérieuses](http://etn406.github.io/bataille-interstellaire )
+Keys
+----
 
+- Move the spaceship with *ZQSD* or *↑↓←→*, and shoot with the left button on you mouse.
 
-Commandes
----------
+- Show the saved scores on the title screen by pressing *H*.
 
-Déplacez-vous avec *ZQSD*, et tirez avec le bouton gauche de la souris.
+- Change the game's color by keeping *C* pressed.
 
-Il est possible de voir les scores enregistrés sur votre ordianteur en appuyant sur *H*, à l'écran d'accueil.
+- _(debug)_ The key *K* shows/hide enemie's target lasers.
 
-Les couleurs sont aléatoires, et il est possible de changer la couleur de son vaisseau en cours de jeu avec *C* (maintenir appuyé)
+- _(debug)_ The key *H* shows/hide ship's health.
 
-La touche *K* active les "lasers" permettant de visualiser la visée de chaque ennemi, c'est à dire en direction du joueur avec un petit décalage en fonction de son déplacement.
+- _(debug)_ The key *L* starts the next level without having to kill al the enemies on screen.
 
-Changements
+Cheat codes
 -----------
 
-J'ai développé ce petit jeu en 2013 et je repasse dessus aujourd'hui (2022) pour mettre à jour l'URL de jeu, la bibliothèque utilisée (Gambas) et corriger un bug bloquant.
+Type a word in game to toggle the cheat effect.
+
+- `ARMA`
+  Bullets teleport on the other of side of the screen instead of disappearing when touching the border.
+
+- `HESOYAM`
+  Restores full health.
+
+- `AIE`
+  Your health is divided by two.
+
+- `PEACE`
+  The enemies stop shooting at you.
+
+- `NORRIS`
+  Have infinite health.
+

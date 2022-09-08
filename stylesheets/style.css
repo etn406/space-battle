@@ -56,6 +56,8 @@ footer ul {
   text-align: center;
   padding: 0;
   list-style: none;
+  font-family: Visitor, sans-serif;
+  font-size: 20px;
 }
 
 footer ul li {
@@ -69,5 +71,5 @@ footer ul a {
 }
 
 footer ul a:hover {
-  color: #666;
+  color: rgb(206, 206, 206);
 }

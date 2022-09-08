@@ -15,7 +15,7 @@ gamvas.states.MenuState = gamvas.State.extend(
     
     /// Variables d'affichage
     // Titre affiché
-    title: "L'invasion des envahisseurs",
+    title: "Space Battle",
     
     // Sous-titre
     subtitle: "Press any key",

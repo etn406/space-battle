@@ -22,6 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+/**
+ * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 /*
  * Class: gamvas
  *
@@ -60,6 +84,9 @@ gamvas = {
     _world: null,
     _usePhys: false,
     _doSleep: true,
+    _isFullScreen: false,
+    _hasMultiTouch: (typeof document.createTouch != 'undefined'),
+    _hasOrientation: (typeof window.DeviceOrientationEvent != 'undefined'),
     /*
      * Variable: baseURL
      *
@@ -171,9 +198,9 @@ gamvas = {
      */
     getCanvasDimension: function() {
         return {
-		w: gamvas._canvas.width,
-		h: gamvas._canvas.height
-	};
+            w: gamvas._canvas.width,
+            h: gamvas._canvas.height
+        };
     },
 
     /*
@@ -235,11 +262,162 @@ gamvas = {
     isSet: function(v) {
         if ( (typeof v == 'undefined') || (v===null) ) return false;
         return true;
+    },
+
+    /*
+     * Function: hasMultiTouch
+     *
+     * Test if device supports multi touch operations
+     *
+     * Returns:
+     *
+     * true or false
+     */
+    hasMultiTouch: function() {
+        return gamvas._hasMultiTouch;
+    },
+
+    /*
+     * Function: hasOrientation
+     *
+     * Test if browser does support device orientation (does not mean the device actually supports it, you should
+     * always provide alternative controls for your game, if it does not support device orientation)
+     *
+     * Returns:
+     *
+     * true or false
+     */
+    hasOrientation: function() {
+        return gamvas._hasOrientation;
+    },
+
+    /*
+     * Function: hasFullScreen
+     *
+     * Test if real fullscreen more is supported
+     *
+     * Returns:
+     *
+     * true or false
+     */
+    hasFullScreen: function() {
+        var canv = gamvas.getCanvas();
+        if (canv) {
+            if (canv.requestFullscreen) {
+                return true;
+            } else if (canv.mozRequestFullScreen) {
+                return true;
+            } else if (canv.webkitRequestFullscreen) {
+                // webkit has problems
+                // return true;
+            }
+        }
+        return false;
+    },
+
+    /*
+     * Function: isFullScreen
+     *
+     * Test if we are currently running in real fullscreen mode
+     *
+     * Returns:
+     *
+     * true or false
+     */
+    isFullScreen: function() {
+        return gamvas._isFullScreen;
+    },
+
+    /*
+     * Function: setFullScreen
+     *
+     * Set real fullscreen mode, if available
+     *
+     * Description:
+     *
+     * Real fullscreen mode as of early 2012 is not yet supported by
+     * many browsers, you should ensure to only show fullscreen switches
+     * on browsers that support it. See <gamvas.hasFullScreen>
+     *
+     * Parameters:
+     *
+     * yesno - A boolean, true to enter real full screen mode, false to leave
+     */
+    setFullScreen: function(yesno) {
+        gamvas._isFullScreen = false;
+        var canv = gamvas.getCanvas();
+        if (canv) {
+            if (canv.requestFullscreen) {
+                gamvas._isFullScreen = yesno;
+                if (yesno) {
+                    canv.requestFullscreen();
+                } else {
+                    canv.cancelFullscreen();
+                }
+            } else if (canv.mozRequestFullScreen) {
+                gamvas._isFullScreen = yesno;
+                if (yesno) {
+                    canv.mozRequestFullScreen();
+                } else {
+                    canv.mozCancelFullScreen();
+                }
+            } /* else if (canv.webkitRequestFullscreen) {
+                // webkit has problems
+                gamvas._isFullScreen = yesno;
+                if (yesno) {
+                    canv.webkitRequestFullscreen();
+                } else {
+                    canv.webkitCancelFullscreen();
+                }
+            } */
+        }
     }
 };
 
 var tmpScr = document.getElementsByTagName('script');
 gamvas.baseURL = tmpScr[tmpScr.length - 1].src.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
+
+document.addEventListener('fullscreenchange', function(e) {
+    var canv = gamvas.getCanvas();
+    if (canv) {
+        if (document.fullScreen) {
+            gamvas._isFullScreen = true;
+            console.log(screen.width+'x'+screen.height);
+            canv.style.width=screen.width+'px';
+            canv.style.height=screen.height+'px';
+        } else {
+            gamvas._isFullScreen = false;
+            canv.style.width=canv.width+'px';
+            canv.style.height=canv.height+'px';
+        }
+    }
+}, false);
+document.addEventListener('mozfullscreenchange', function(e) {
+    var canv = gamvas.getCanvas();
+    if (canv) {
+        if (document.mozFullScreen) {
+            gamvas._isFullScreen = true;
+        } else {
+            gamvas._isFullScreen = false;
+        }
+    }
+}, false);
+/* disabled, technical problems
+document.addEventListener('webkitfullscreenchange', function(e) {
+    var canv = gamvas.getCanvas();
+    if (canv) {
+        if (document.webkitIsFullScreen) {
+            gamvas._isFullScreen = true;
+            console.log(screen.width+'x'+screen.height+' '+window.innerWidth);
+            canv.style.width=screen.width+'px';
+            canv.style.height=screen.height+'px';
+        } else {
+            gamvas._isFullScreen = false;
+            canv.style.width=canv.width+'px';
+            canv.style.height=canv.height+'px';
+        }
+    }
+}, false); */
 /**
  * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
  * 
@@ -303,8 +481,15 @@ gamvas.baseURL = tmpScr[tmpScr.length - 1].src.replace(/\\/g, '/').replace(/\/[^
  * > obj.debug();
  */
 (function() {
+    var objCounter = 1;
     var creating = false;
     gamvas.Class = function(){};
+    gamvas.Class.prototype.objectID = function() {
+        if (typeof this.__oid == 'undefined') {
+            this.__oid = objCounter++;
+        }
+        return this.__oid;
+    };
     gamvas.Class.extend = function(prop) {
         var _super = this.prototype;
         creating = true;
@@ -682,6 +867,55 @@ gamvas.Resource.prototype.done = function() {
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
+ * Class: gamvas.math
+ *
+ * Miscellaneous math functions
+ */
+
+gamvas.math = {
+    /*
+     * Function: degToRad
+     *
+     * Convert a angle in degrees to a angle in radians
+     */
+    degToRad: function(deg) {
+        return deg*(Math.PI/180);
+    },
+
+    /*
+     * Function: radToDeg
+     *
+     * Convert a angle in radians to a angle in degrees
+     */
+    radToDeg: function(rad) {
+        return rad*(180/Math.PI);
+    }
+};
+/**
+ * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
  * Class: gamvas.Rect
  *
  * Holds position and width information of a rectangle
@@ -865,6 +1099,124 @@ gamvas.Vector2D.prototype.rotate = function(r) {
     ret.y = s*this.x+c*this.y;
     return ret;
 };
+
+/*
+ * Function: substract
+ *
+ * Returns a new vector subtracting vector v from current vector
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = new gamvas.Vector2D(2, 2);
+ * > var subtracted = vec1.subtract(vec2);
+ */
+gamvas.Vector2D.prototype.subtract = function(v) {
+    var ret = new gamvas.Vector2D(this.x, this.y);
+    ret.x -= v.x;
+    ret.y -= v.y;
+    return ret;
+};
+
+/*
+ * Function: add
+ *
+ * Returns a new vector adding vector v to the current vector
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = new gamvas.Vector2D(2, 2);
+ * > var added = vec1.add(vec2);
+ */
+gamvas.Vector2D.prototype.add = function(v) {
+    var ret = new gamvas.Vector2D(this.x, this.y);
+    ret.x += v.x;
+    ret.y += v.y;
+    return ret;
+};
+
+/*
+ * Function: difference
+ *
+ * Returns a new vector holding the difference between vector v and the current vector
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = new gamvas.Vector2D(2, 2);
+ * > var diff = vec1.difference(vec2);
+ */
+gamvas.Vector2D.prototype.difference = function(v) {
+    return new gamvas.Vector2D(v.x-this.x, v.y-this.y);
+};
+
+/*
+ * Function: copy
+ *
+ * Returns a copy of the vector
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = vec1.copy();
+ * > vec2.x += 1;
+ * > console.log(vec1.x); // will be 1
+ * > console.log(vec2.x); // will be 2
+ */
+gamvas.Vector2D.prototype.copy = function() {
+    return new gamvas.Vector2D(this.x, this.y);
+};
+
+/*
+ * Function: distance
+ *
+ * Returns the distance between the current vector and vector v
+ *
+ * Description:
+ *
+ * This uses the sqrt() function which might be too slow, if you
+ * just need to compare several distances, see <gamvas.Vector2D.quickDistance>
+ * for a faster version
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = new gamvas.Vector2D(2, 3);
+ * > console.log('The vectors are '+vec1.distance(vec2)+' units away');
+ */
+gamvas.Vector2D.prototype.distance = function(v) {
+    var d = this.difference(v);
+    return d.length();
+};
+
+/*
+ * Function: quickDistance
+ *
+ * Returns a comparable distance between the current vector and vector v
+ *
+ * Description:
+ *
+ * This is faster then testing the distance with <gamvas.Vector2D.distance>
+ * but does not give the actual distance, only a comparable value
+ *
+ * Example:
+ *
+ * > var vec1 = new gamvas.Vector2D(1, 1);
+ * > var vec2 = new gamvas.Vector2D(2, 3);
+ * > var vec3 = new gamvas.Vector2D(3, 4);
+ * > var distv1v2 = vec1.quickDistance(vec2);
+ * > var distv1v3 = vec1.quickDistance(vec3);
+ * > if (distv1v2 > distv1v3) {
+ * >    console.log('vector 1 is closer to vector 2');
+ * > } else {
+ * >    console.log('vector 1 is closer to vector 3');
+ * > }
+ */
+gamvas.Vector2D.prototype.quickDistance = function(v) {
+    var d = this.difference(v);
+    return d.quickLength();
+};
 /**
  * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
  * 
@@ -1017,6 +1369,39 @@ gamvas.event = {
         gamvas.event._onReadyRan = true;
         for (var i in gamvas.event._onReadyFunctions) {
             gamvas.event._onReadyFunctions[i]();
+        }
+    },
+
+    /*
+     * Function: stopBubble
+     *
+     * Parameters:
+     *
+     * e - The event object
+     *
+     * Description:
+     *
+     * Do not transfer events to underlying elements (aka bubbling)
+     *
+     * Example:
+     *
+     * > gamvas.event.addOnReady(function() {
+     * >     alert('Everything is up, we're ready to roll!');
+     * > }
+     */
+    stopBubble: function(e) {
+        var ev = (typeof e == 'undefined') ? window.event : e;
+        if (ev.stopPropagation) {
+            ev.stopPropagation();
+        }
+        if (ev.preventDefault) {
+            ev.preventDefault();
+        }
+        if (ev.cancelBubble !== null) {
+            ev.cancelBubble = true;
+        }
+        if (ev.returnValue) {
+            ev.returnValue = false;
         }
     }
 };
@@ -2233,7 +2618,7 @@ gamvas.State = gamvas.Class.extend({
          * <gamvas.mouse>
          */
         onMouseDown: function(button, x, y, ev) {
-		return gamvas.mouse.exitEvent();
+            return gamvas.mouse.exitEvent();
         },
 
         /*
@@ -2259,7 +2644,7 @@ gamvas.State = gamvas.Class.extend({
          * <gamvas.mouse>
          */
         onMouseUp: function(button, x, y, ev) {
-		return gamvas.mouse.exitEvent();
+            return gamvas.mouse.exitEvent();
         },
 
         /*
@@ -2292,7 +2677,80 @@ gamvas.State = gamvas.Class.extend({
          * > });
          */
         onMouseMove: function(x, y, ev) {
-		return gamvas.mouse.exitEvent();
+            return gamvas.mouse.exitEvent();
+        },
+
+        /*
+         * Function: onTouchDown
+         *
+         * A finger starts touching the display
+         *
+         * Description:
+         *
+         * The id is a integer representing the finger used. Starts with 0
+         * next finger would be 1, if the first finger would be removed from
+         * the display and another finger will be added, the new finger would
+         * become id 0 again, as id 0 was not used anymore, when the new finger
+         * was added
+         *
+         * Parameters:
+         *
+         * id - A unique integer to identify certain fingers
+         * x/y - The screen position, where the finger was put down
+         * ev - The JavaScript event object
+         */
+        onTouchDown: function(id, x, y, ev) {
+            return gamvas.mouse.exitEvent();
+        },
+
+        /*
+         * Function: onTouchUp
+         *
+         * A finger stopped touching the display
+         *
+         * Parameters:
+         *
+         * id - A unique integer to identify certain fingers
+         * x/y - The screen position, where the finger was put down
+         * ev - The JavaScript event object
+         */
+        onTouchUp: function(id, x, y, ev) {
+            return gamvas.mouse.exitEvent();
+        },
+
+        /*
+         * Function: onTouchMove
+         *
+         * A finger is sliding over the surface
+         *
+         * Parameters:
+         *
+         * id - A unique integer to identify certain fingers
+         * x/y - The screen position, where the finger was put down
+         * ev - The JavaScript event object
+         */
+        onTouchMove: function(id, x, y, ev) {
+            return gamvas.mouse.exitEvent();
+        },
+
+        /*
+         * Function: onOrientation
+         *
+         * The device was tilted
+         *
+         * Description:
+         *
+         * If you lay the device flat to the ground, the default values are:
+         * alpha 180, beta 0, gamma 0. The values are measured in degrees.
+         *
+         * Parameters:
+         *
+         * alpha - The rotation as if you would hold your device as a steering wheel in front of you
+         * beta - The rotation if you tilt the device away from you/towards you
+         * gamma - The rotation if you tilt the device to the side
+         */
+        onOrientation: function(alpha, beta, gamma) {
+            return false;
         },
 
         /*
@@ -2605,6 +3063,33 @@ gamvas.state = {
     },
 
     /*
+     * Function: getState
+     *
+     * Get a certain state
+     *
+     * Parameters:
+     *
+     * name - Name of the state to get
+     *
+     * Returns:
+     *
+     * The <gamvas.State> or false if state is not existing
+     *
+     * Example:
+     *
+     * > var mainState = gamvas.state.getState('main');
+     * > if (mainState) {
+     * >    console.log("found state main");
+     * > }
+     */
+    getState: function(name) {
+        if (typeof gamvas.state._states[name] != 'undefined') {
+            return gamvas.state._states[name];
+        }
+        return false;
+    },
+
+    /*
      * Function: getCurrentState
      *
      * Description:
@@ -2694,82 +3179,266 @@ gamvas.state = {
         }
     },
 
+    getCharCode: function(ev) {
+        var charCode = 0;
+        if (typeof ev.which == 'undefined') {
+            charCode = ev.keyCode;
+        } else {
+            charCode = ev.which;
+        }
+        return String.fromCharCode(charCode).toLowerCase();
+    },
+
     onKeyDown: function(ev) {
         gamvas.key.setPressed(ev.keyCode, true);
         var cur = gamvas.state.getCurrentState();
+        var charCode = gamvas.state.getCharCode(ev);
         if (cur) {
             for (var i in cur.eventActors) {
-                cur.eventActors[i].onKeyDown(ev.keyCode, ev.charCode, ev);
+                cur.eventActors[i].onKeyDown(ev.keyCode, charCode, ev);
             }
-            return cur.onKeyDown(ev.keyCode, ev.charCode, ev);
+            var ret = cur.onKeyDown(ev.keyCode, charCode, ev);
+            if (!ret) {
+                ev.preventDefault();
+            }
+            return ret;
         }
-	return gamvas.key.exitEvent();
+        if (!gamvas.key.exitEvent()) {
+            ev.preventDefault();
+        }
+        return gamvas.key.exitEvent();
     },
 
     onKeyUp: function(ev) {
         gamvas.key.setPressed(ev.keyCode, false);
         var cur = gamvas.state.getCurrentState();
+        var charCode = gamvas.state.getCharCode(ev);
         if (cur) {
             for (var i in cur.eventActors) {
-                cur.eventActors[i].onKeyUp(ev.keyCode, ev.charCode, ev);
+                cur.eventActors[i].onKeyUp(ev.keyCode, charCode, ev);
             }
-            return cur.onKeyUp(ev.keyCode, ev.charCode, ev);
+            var ret = cur.onKeyUp(ev.keyCode, charCode, ev);
+            if (!ret) {
+                ev.preventDefault();
+            }
+            return ret;
         }
-	return gamvas.key.exitEvent();
+        if (!gamvas.key.exitEvent()) {
+            ev.preventDefault();
+        }
+        return gamvas.key.exitEvent();
     },
 
     onMouseDown: function(ev) {
-        gamvas.key.setPressed(ev.button, true);
+        gamvas.mouse.setPressed(ev.button, true);
         var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
         if (cur) {
             var pos = gamvas.mouse.getPosition();
+            if (isFS) {
+                pos.x = pos.x/screen.width*dim.w;
+                pos.y = pos.y/screen.height*dim.h;
+            }
             for (var i in cur.eventActors) {
                 cur.eventActors[i].onMouseDown(ev.button, pos.x, pos.y, ev);
             }
             var res = cur.onMouseDown(ev.button, pos.x, pos.y, ev);
             ev.returnValue = res;
+            if (!res) {
+                ev.preventDefault();
+            }
             return res;
         }
-	var ret = gamvas.mouse.exitEvent();
-	ev.returnValue=ret;
-	return ret;
+        var ret = gamvas.mouse.exitEvent();
+        ev.returnValue=ret;
+        if (!ret) {
+            ev.preventDefault();
+        }
+        return ret;
     },
 
     onMouseUp: function(ev) {
-        gamvas.key.setPressed(ev.button, false);
+        gamvas.mouse.setPressed(ev.button, false);
         var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
         if (cur) {
             var pos = gamvas.mouse.getPosition();
+            if (isFS) {
+                pos.x = pos.x/screen.width*dim.w;
+                pos.y = pos.y/screen.height*dim.h;
+            }
             for (var i in cur.eventActors) {
                 cur.eventActors[i].onMouseUp(ev.button, pos.x, pos.y, ev);
             }
             var res = cur.onMouseUp(ev.button, pos.x, pos.y, ev);
             ev.returnValue= res;
+            if (!res) {
+                ev.preventDefault();
+            }
             return res;
         }
-	var ret = gamvas.mouse.exitEvent();
-	ev.returnValue=ret;
-	return ret;
+        var ret = gamvas.mouse.exitEvent();
+        ev.returnValue=ret;
+        if (!ret) {
+            ev.preventDefault();
+        }
+        return ret;
     },
 
     onMouseMove: function(ev) {
         gamvas.mouse.setPosition(ev.pageX, ev.pageY);
         var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
         if (cur) {
             var pos = gamvas.mouse.getPosition();
+            if (isFS) {
+                pos.x = pos.x/screen.width*dim.w;
+                pos.y = pos.y/screen.height*dim.h;
+            }
             for (var i in cur.eventActors) {
                 cur.eventActors[i].onMouseMove(pos.x, pos.y, ev);
             }
             var res = cur.onMouseMove(pos.x, pos.y, ev);
             ev.returnValue=res;
+            if (!res) {
+                ev.preventDefault();
+            }
             return res;
         }
-	var ret = gamvas.mouse.exitEvent();
-	ev.returnValue=ret;
-	return ret;
+        var ret = gamvas.mouse.exitEvent();
+        ev.returnValue=ret;
+        if (!ret) {
+            ev.preventDefault();
+        }
+        return ret;
     },
 
+    _maxTouches: 11,
+    _touchMap: [false, false, false, false, false, false, false, false, false, false, false],
+
+    _getTouchNum: function(id) {
+        for (var i = 0; i < gamvas.state._maxTouches; i++) {
+            if (gamvas.state._touchMap[i] === id) {
+                return i;
+            }
+        }
+        for (var i = 0; i < gamvas.state._maxTouches; i++) {
+            if (gamvas.state._touchMap[i] === false) {
+                gamvas.state._touchMap[i] = id;
+                return i;
+            }
+        }
+        return 0;
+    },
+
+    _removeTouch: function(id) {
+        for (var i = 0; i < gamvas.state._maxTouches; i++) {
+            if (gamvas.state._touchMap[i] == id) {
+                gamvas.state._touchMap[i] = false;
+                return;
+            }
+        }
+    },
+
+    onTouchDown: function(ev) {
+        gamvas.event.stopBubble(ev);
+        var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
+        if (cur) {
+            var cpos = gamvas.getCanvasPosition();
+            for (var n = 0; n < ev.changedTouches.length; n++) {
+                var id = gamvas.state._getTouchNum(ev.changedTouches[n].identifier);
+                var posx = ev.changedTouches[n].pageX-cpos.x;
+                var posy = ev.changedTouches[n].pageY-cpos.y;
+                if (isFS) {
+                    posx = posx/screen.width*dim.w;
+                    posy = posy/screen.height*dim.h;
+                }
+                for (var i in cur.eventActors) {
+                    cur.eventActors[i].onTouchDown(id, posx, posy, ev);
+                }
+                cur.onTouchDown(id, posx, posy, ev);
+            }
+        }
+        return false;
+    },
+
+    onTouchUp: function(ev) {
+        gamvas.event.stopBubble(ev);
+        var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
+        if (cur) {
+            var cpos = gamvas.getCanvasPosition();
+            for (var n = 0; n < ev.changedTouches.length; n++) {
+                var ident = ev.changedTouches[n].identifier;
+                var id = gamvas.state._getTouchNum(ident);
+                var posx = ev.changedTouches[n].pageX-cpos.x;
+                var posy = ev.changedTouches[n].pageY-cpos.y;
+                if (isFS) {
+                    posx = posx/screen.width*dim.w;
+                    posy = posy/screen.height*dim.h;
+                }
+                for (var i in cur.eventActors) {
+                    cur.eventActors[i].onTouchUp(id, posx, posy, ev);
+                }
+                cur.onTouchUp(id, posx, posy, ev);
+                gamvas.state._removeTouch(ident);
+            }
+        }
+        return false;
+    },
+
+    onTouchMove: function(ev) {
+        gamvas.event.stopBubble(ev);
+        var cur = gamvas.state.getCurrentState();
+        var dim = gamvas.getCanvasDimension();
+        var isFS = gamvas.isFullScreen();
+        if (cur) {
+            var cpos = gamvas.getCanvasPosition();
+            for (var n = 0; n < ev.changedTouches.length; n++) {
+                var id = gamvas.state._getTouchNum(ev.changedTouches[n].identifier);
+                var posx = ev.changedTouches[n].pageX-cpos.x;
+                var posy = ev.changedTouches[n].pageY-cpos.y;
+                if (isFS) {
+                    posx = posx/screen.width*dim.w;
+                    posy = posy/screen.height*dim.h;
+                }
+                for (var i in cur.eventActors) {
+                    cur.eventActors[i].onTouchMove(id, posx, posy, ev);
+                }
+                cur.onTouchMove(id, posx, posy, ev);
+            }
+        }
+        return false;
+    },
+
+    onOrientation: function(ev) {
+        gamvas.event.stopBubble(ev);
+        var cur = gamvas.state.getCurrentState();
+        cur.onOrientation(ev.alpha, ev.beta, ev.gamma);
+        return false;
+    },
+
+
     setup: function() {
+        var canv = gamvas.getCanvas();
+        canv.addEventListener('mousedown', gamvas.state.onMouseDown, false);
+        canv.addEventListener('mouseup', gamvas.state.onMouseUp, false);
+        canv.addEventListener('mousemove', gamvas.state.onMouseMove, false);
+        if (gamvas.hasMultiTouch()) {
+            canv.addEventListener("touchstart", gamvas.state.onTouchDown, false);
+            canv.addEventListener("touchmove", gamvas.state.onTouchMove, false);
+            canv.addEventListener("touchend", gamvas.state.onTouchUp, false);
+            canv.addEventListener("touchcancel", gamvas.state.onTouchUp, false);
+        }
+        if (gamvas.hasOrientation()) {
+            window.addEventListener("deviceorientation", gamvas.state.onOrientation, false);
+        }
         if (gamvas.state._currentState !== null) {
             var n = 0;
             for (var i in gamvas.state._states) {
@@ -2783,11 +3452,8 @@ gamvas.state = {
     }
 };
 
-document.onkeydown = gamvas.state.onKeyDown;
-document.onkeyup = gamvas.state.onKeyUp;
-document.onmousedown = gamvas.state.onMouseDown;
-document.onmouseup = gamvas.state.onMouseUp;
-document.onmousemove = gamvas.state.onMouseMove;
+document.addEventListener('keydown', gamvas.state.onKeyDown, false);
+document.addEventListener('keyup', gamvas.state.onKeyUp, false);
 /**
  * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
  * 
@@ -4239,7 +4905,7 @@ gamvas.physics = {
             gamvas._world = new Box2D.Dynamics.b2World(new Box2D.Common.Math.b2Vec2(gx, gy), doSleep);
         }
         this._debugDrawer = null;
-        var l = (gamvas.isSet(listener)) ? listener : new Box2D.Dynamics.b2ContactListener();
+        var l = (gamvas.isSet(listener)) ? listener : new gamvas.physics.ContactListener();
         var w = gamvas.physics.getWorld();
         w.SetContactListener(l);
     },
@@ -4396,6 +5062,720 @@ if ( (typeof Box2D != 'undefined') && (typeof Box2D.Dynamics.b2ContactListener !
         }
     };
 }
+/**
+ * Copyright (C) 2013 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * Class: gamvas.AStar
+ *
+ * gamvas.AStar specific defines, variables and functions
+ */
+gamvas.AStar = {
+    /*
+     * Define: gamvas.AStar.STRATEGY_AVOID_STEPS
+     *
+     * Avoid height steps in a <gamvas.AStarArray>
+     *
+     * Description:
+     *
+     * The AI tries to avoid height differences when finding a path in <gamvas.AStarArray>.
+     * If it is walking through a valley, it avoids mountains until it has no other chance,
+     * once it 'climbed' a mountain, it will try to stay on that mountain, until it is forced
+     * to continue in the valleys... and so on...
+     */
+    STRATEGY_AVOID_STEPS: 0,
+
+    /*
+     * Define: gamvas.AStar.STRATEGY_IGNORE_STEPS
+     *
+     * Ignore height steps in a <gamvas.AStarArray>
+     *
+     * Description:
+     *
+     * The AI ignores height differences in a <gamvas.AStarArray> pathfinding
+     * map and just walks over height differences as if they weren't there.
+     */
+    STRATEGY_IGNORE_STEPS: 1
+};
+/**
+ * Copyright (C) 2013 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * Class: gamvas.AStarMap
+ *
+ * Description:
+ *
+ * A flexible 3D node based A* pathfinding system
+ *
+ * For a simpler to use 2D grid based system, have a look at <gamvas.AStarGrid>
+ *
+ * Constructor:
+ *
+ * new gamvas.AStarMap(withFirst);
+ *
+ * Parameters:
+ *
+ * withFirst - include the first element of a path when searching (optional, default: true)
+ * Example:
+ *
+ * Create a new path finding system and add two nodes that are
+ * connected to each other.
+ *
+ * > var pathFind = new gamvas.AStarMap();
+ * > // create nodes
+ * > var n1 = new AStarNode(10, 2);
+ * > var n2 = new AStarNode(100, 50);
+ * > // set connection between nodes
+ * > n1.connect(n2);
+ * > // add the nodes to the system
+ * > pathFind.add(n1);
+ * > pathFind.add(n2);
+ * > // find the path between two points in space
+ * > var path = pathFind.find(5, 1, 120, 40);
+ */
+gamvas.AStarInfo = function(n, sW, tW, pI) {
+    this.node = n;
+    this.sw = sW;
+    this.tw = tW;
+    this.pi = pI;
+};
+
+gamvas.AStarMap = gamvas.Class.extend({
+    create: function(withFirst) {
+        this.nodes = new Array();
+        this.returnFirst = true;
+
+        if (typeof withFirst != 'undefined') {
+            this.returnFirst = withFirst;
+        }
+    },
+    includeFirstNode: function(withFirst) {
+        this.returnFirst = withFirst;
+    },
+
+    /*
+     * Function: add
+     *
+     * Add a <gamvas.AStarNode> to the node system
+     *
+     * Note:
+     *
+     * Keep in mind, that by just adding it, it is not connected
+     * to anything. See <gamvas.AStarNode.connect>
+     */
+    add: function(n) {
+        if (n instanceof gamvas.AStarNode) {
+            this.nodes.push(n);
+        }
+    },
+
+    /*
+     * Function: find
+     *
+     * Find a path between two points in 2D space, or two <gamvas.AStarNode> elements
+     *
+     * Parameters:
+     *
+     * This function has two alternative ways to use it
+     *
+     * A) by specifying points in 2D space:
+     *
+     * map.find(x1, y1, x2, y2);
+     *
+     * B) by specifying nodes:
+     *
+     * map.find(node1, node2);
+     *
+     * Example:
+     *
+     * > var pathFind = new gamvas.AStarMap();
+     * > // create nodes
+     * > var n1 = new AStarNode(10, 2);
+     * > var n2 = new AStarNode(100, 50);
+     * > var n3 = new AStarNode(250, 25);
+     * > // set connection between nodes
+     * > n1.connect(n2);
+     * > n2.connect(n3);
+     * > // add the nodes to the system
+     * > pathFind.add(n1);
+     * > pathFind.add(n2);
+     * > pathFind.add(n3);
+     * > // find the path using the nodes instead of using 3d coordinates
+     * > var path = pathFind.find(n1, n3);
+     */
+    find: function(nxs, nys, xe, ye) {
+        var ret = [];
+        var sn = null;
+        var en = null;
+        if ( (nxs instanceof gamvas.AStarNode) && (nys instanceof gamvas.AStarNode) ) {
+            sn = nxs;
+            en = nys;
+        } else {
+            sn = this.getNearest(nxs, nys);
+            en = this.getNearest(xe, ye);
+            if ( (!(sn instanceof gamvas.AStarNode)) || (!(en instanceof gamvas.AStarNode)) ) {
+                return [];
+            }
+        }
+        var ol = [new gamvas.AStarInfo(sn, 0, 0, null)];
+        var yol = [];
+        var cl = [];
+        var found = false;
+
+        var curr = null;
+        while ( (!found) && (ol.length) ) {
+            curr = ol.shift();
+            if (curr.node === en) {
+                found = true;
+                continue;
+            }
+            for (var c = 0; c < curr.node.connected.length; c++) {
+                var tn = curr.node.connected[c];
+                var tnoid = tn.objectID();
+                if ( (!yol[tnoid]) && (!cl[tnoid]) ) {
+                    var gv = curr.node.g(tn);
+                    if (gv < 0) {
+                        continue;
+                    }
+                    var hv = curr.node.h(tn, en);
+                    var nWeight = curr.sw+gv+hv;
+                    var ins = false;
+                    for (var oi = 0; oi < ol.length && ins === false; oi++) {
+                        if (ol[oi].sw+ol[oi].tw > nWeight) {
+                            ol.splice(oi, 0, new gamvas.AStarInfo(tn, curr.sw+gv, hv, curr));
+                            yol[tnoid] = true;
+                            ins = true;
+                        }
+                    }
+                    if (!ins) {
+                        ol.push(new gamvas.AStarInfo(tn, curr.sw+gv, hv, curr));
+                        yol[tnoid] = true;
+                    }
+                }
+            }
+            cl[curr.node.objectID()] = true;
+        }
+
+        if (found) {
+            while (curr.pi !== null) {
+                ret.unshift(curr.node);
+                curr = curr.pi;
+            }
+            if (this.returnFirst) {
+                ret.unshift(curr.node);
+            }
+        }
+
+        return ret;
+    },
+
+    getNearest: function(nx, y) {
+        var pos = null;
+        if (nx instanceof gamvas.AStarNode) {
+            pos = new gamvas.AStarNode(nx.position.x, nx.position.y);
+        } else {
+            pos = new gamvas.AStarNode(nx, y);
+        }
+        var nearestID = -1;
+        var maxDist = Infinity;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].id != pos.id) {
+                var d = pos.position.quickDistance(this.nodes[i].position);
+                if (d < maxDist) {
+                    maxDist = d;
+                    nearestID = i;
+                }
+            }
+        }
+        if (nearestID >= 0) {
+            return this.nodes[nearestID];
+        }
+        return null;
+    }
+});
+/**
+ * Copyright (C) 2013 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * Class: gamvas.AStarNode
+ *
+ * Description:
+ *
+ * A base class for pathfinding nodes. You can override it with your own
+ * g() and h() functions
+ *
+ * Constructor:
+ *
+ * new gamvas.AStarNode(x, y, id);
+ *
+ * Parameters:
+ *
+ * x, y - The position of the way point
+ * id - A unique id for this node within the pathfinding system (optional, default: autogenerated)
+ */
+gamvas.AStarNode = gamvas.Class.extend({
+    /*
+     * Variable: connected
+     *
+     * A array holding the connected <gamvas.AStarNode> elements
+     */
+    /* Variable: position
+     *
+     * A <gamvas.Vector2D> holding the position of the node
+     */
+    create: function(x, y, id) {
+        this.connected = new Array();
+        this.position = new gamvas.Vector2D(x, y);
+        (id) ? this.id = id : this.id = this.position.x+'_'+this.position.y;
+    },
+    /* Function: g
+     *
+     * The path cost function, should return a value that represents
+     * how hard it is to reach the current node
+     *
+     * Parameters:
+     *
+     * n - The node we are coming from
+     *
+     * Returns:
+     *
+     * Negative values - Current node can not be reached from node n
+     * Positive values - Representing the costs reaching the current node from node n
+     *
+     * Example:
+     *
+     * > gamvas.AStarGridNode = gamvas.AStarNode.extend({
+     * >    create: function(x, y, id) {
+     * >       this._super(x, y, id);
+     * >    },
+     * >    g: function(n) {
+     * >       // get height difference
+     * >       var diff = Math.abs(this.position.y-n.position.y);
+     * >       if (diff > 10) {
+     * >          return -1; // we can not step over 10 in height
+     * >       }
+     * >       // give it some weight so the higher the differnce, the more unlikely it is, the path will walk over it
+     * >       return diff * diff;
+     * >    }
+     * > });
+     */
+    g: function(n) {
+        return 1;
+    },
+    /* Function: h
+     *
+     * The heuristic estimate
+     *
+     * Parameters:
+     *
+     * n - The node we are coming from
+     * t - The target of the current path find
+     *
+     * Returns:
+     *
+     * The estimated cost to the path target
+     *
+     * Example:
+     *
+     * This is the standard implementation, which returns the distance
+     * to the target.
+     *
+     * If you have more information, like for example number of opponents
+     * between target and current position, you could return a higher value
+     * if too many opponants are between target and current position, so
+     * the algorithm will try to avoid running directly through hordes of
+     * monsters.
+     *
+     * > gamvas.AStarGridNode = gamvas.AStarNode.extend({
+     * >    create: function(x, y, id) {
+     * >       this._super(x, y, id);
+     * >    },
+     * >    h: function(n, t) {
+     * >       var dif = this.position.difference(t.position);
+     * >       return dif.length();
+     * >    }
+     * > });
+     */
+    h: function(n, t) {
+        var dif = this.position.difference(t.position);
+        return dif.length();
+    },
+    /*
+     * Function: connect
+     *
+     * Connect two nodes
+     *
+     * Parameters:
+     *
+     * n - The node to connect to
+     * auto - true/false if automatically set up a bidirectional connection (optional, default: true)
+     */
+    connect: function(n, auto) {
+        this.connected.push(n);
+        if ( (auto) || (typeof auto == 'undefined') ) {
+            n.connect(this, false);
+        }
+    }
+});
+
+/**
+ * Copyright (C) 2013 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * Class: gamvas.AStarGrid
+ *
+ * Description:
+ *
+ * A class to simplify A* pathfinding on a 2x2 grid with a optional height field
+ *
+ * The single fields can have any value where negative values mean 'not walkable'
+ * and positive values are interpreted debending on the path finding strategy used
+ *
+ * Constructor:
+ *
+ * new gamvas.AStarGrid(w, h, diag, withFirst, strt, dflt);
+ *
+ * Parameters:
+ *
+ * w - The width of the grid
+ * h - The height of the grid
+ * diag - Allow diagonal steps (optional, default: false)
+ * withFirst - Include the first node of the path in the result (optional, default: true)
+ * strt - The path finding strategy (see below) (optional)
+ * dflt - The default value for the grid fields (optional, default: 0)
+ *
+ * Extends:
+ *
+ * <gamvas.AStarMap>
+ *
+ * Strategy:
+ *
+ * There are several strategies, how the values are interpreted.
+ * They only give minor differnce in the result, but in certain
+ * situations it might be necessary to use a different strategy
+ *
+ * gamvas.AStar.STRATEGY_AVOID_STEPS - (default) The algorithm tries to avoid height differences, so if you start in a valley, it will try to stay in the valley and run around mountains, until there is nothing left other then stepping on a mountain, once on the moutain, it tries to stay on it, until it has to go down to the valley again.
+ *
+ * gamvas.AStar.STRATEGY_IGNORE_STEPS - The algorithm completely ignores height information and always tries to go straight to the target
+ *
+ * Example:
+ *
+ * The following would create a grid with 50 by 50 fields.
+ * As we do not set any field values, default is 0, which means
+ * perfect ground to walk on, this example would result in
+ * a path that represents a straight line from upper left to
+ * lower right corner of the grid.
+ *
+ * > var pathMap = new gamvas.AStarGrid(50, 50);
+ * > var result = pathMap.find(0, 0, 49, 49);
+ * > for (var i = 0; i < result.length; i++) {
+ * >    console.log('Step '+i+' is at 'result[i].position.x+','+result[i].position.y);
+ * > }
+ *
+ * See:
+ *
+ * <gamvas.AStar>
+ *
+ */
+gamvas.AStarGrid = gamvas.AStarMap.extend({
+        create: function(w, h, diag, withFirst, strt, dflt) {
+            this._super(withFirst);
+            if (typeof strt == 'undefined') {
+                this.strategy = 0;
+            } else {
+                this.strategy = strt;
+            }
+
+            this.width = w;
+            this.height = h;
+            this.setDefault(dflt);
+            if (typeof diag != 'undefined') {
+                this.useDiagonal = diag;
+            } else {
+                this.useDiagonal = false;
+            }
+
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < w; x++) {
+                    this.add(new gamvas.AStarGridNode(this.strategy, this.defaultValue, x, y));
+                }
+            }
+            for (var yy = 0; yy < h; yy++) {
+                for (var xx = 0; xx < w; xx++) {
+                    var other = null;
+                    var n = this.nodes[yy*w+xx];
+                    if (xx > 0) {
+                        other = this.nodes[(yy)*w+(xx-1)];
+                        n.connect(other, false);
+                        if (this.useDiagonal) {
+                            if (yy > 0) {
+                                other = this.nodes[(yy-1)*w+(xx-1)];
+                                n.connect(other, false);
+                            }
+                            if (yy < h-1) {
+                                other = this.nodes[(yy+1)*w+(xx-1)];
+                                n.connect(other, false);
+                            }
+                        }
+                    }
+                    if (yy > 0) {
+                        other = this.nodes[(yy-1)*w+(xx)];
+                        n.connect(other, false);
+                    }
+                    if (yy < this.height-1) {
+                        other = this.nodes[(yy+1)*w+(xx)];
+                        n.connect(other, false);
+                    }
+                    if (xx < this.width-1) {
+                        other = this.nodes[(yy)*w+(xx+1)];
+                        n.connect(other, false);
+                        if (this.useDiagonal) {
+                            if (yy > 0) {
+                                other = this.nodes[(yy-1)*w+(xx+1)];
+                                n.connect(other, false);
+                            }
+                            if (yy < h-1) {
+                                other = this.nodes[(yy+1)*w+(xx+1)];
+                                n.connect(other, false);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        setDefault: function(dflt) {
+                if (dflt) {
+                    this.defaultValue = dflt;
+                } else {
+                    this.defaultValue = 0;
+                }
+        },
+        /*
+         * Function: setValue
+         *
+         * Set a value val in the grid on position x, y
+         *
+         * Description:
+         *
+         * Negative values are 'not walkable' while values
+         * of 0 or higher are 'walkable' where depending on the
+         * strategy the positive values may be interpreted as
+         * height map
+         *
+         * Parameters:
+         *
+         * x - The x position in the grid
+         * y - The y position in the grid
+         * val - The value, where < 0 means 'not walkable' and >= 0 means 'walkable'
+         */
+        setValue: function(x, y, val) {
+            if ( (x < this.width) && (y < this.height) ) {
+                this.nodes[y*this.width+x].setValue(val);
+            }
+        },
+        /*
+         * Function: getValue
+         *
+         * Get the field value of position x,y in the grid
+         *
+         * Parameters:
+         *
+         * x - The x position in the grid
+         * y - The y position in the grid
+         */
+        getValue: function(x, y) {
+            if ( (x < this.width) && (y < this.height) ) {
+                return this.nodes[y*this.width+x].value;
+            }
+            return -1;
+        },
+        /*
+         * Function: find
+         *
+         * Find a path between two positions in the grid
+         *
+         * Parameters:
+         *
+         * xs - The x position of the start field
+         * ys - The y position of the start field
+         * xe - The x position of the end field (aka target)
+         * ye - The y position of the end field (aka target)
+         *
+         * Returns:
+         *
+         * An array of <gamvas.AStarGridNode>. If no path is
+         * possible, the array has a length of 0
+         */
+        find: function(xs, ys, xe, ye) {
+            if ( (xs instanceof gamvas.AStarNode) && (ys instanceof gamvas.AStarNode) ) {
+                return this._super(xs, ys);
+            }
+            if ( (xs < this.width) && (ys < this.height) && (xe < this.width) && (ye < this.width) ) {
+                var sn = this.nodes[ys*this.width+xs];
+                var en = this.nodes[ye*this.width+xe];
+                return this._super(sn, en);
+            }
+        }
+});
+/**
+ * Copyright (C) 2013 Heiko Irrgang <hi@93i.de>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * Class: gamvas.AStarGridNode
+ *
+ * Description:
+ *
+ * The node information of a <gamvas.AStarGrid> map
+ */
+gamvas.AStarGridNode = gamvas.AStarNode.extend({
+        /*
+         * Variable: position
+         *
+         * The position information in the grid as <gamvas.Vector2D>
+         *
+         * Note:
+         *
+         * Example:
+         *
+         * > var path = myAStarGrid.find(0, 0, 10, 15);
+         * > if (path.length) {
+         * >    console.log('First position: '+path[0].position.x+', '+path[0].position.y);
+         * > }
+         *
+         */
+        create: function(st, v, x, y, id) {
+            this._super(x, y, id);
+            this.strategy = st;
+            this.value = v;
+        },
+
+        setValue: function(v) {
+            this.value = v;
+        },
+
+        g: function(n) {
+            if (this.value < 0) {
+                return this.value;
+            }
+
+            if (this.strategy == 1) { // IgnoreSteps
+                if (n.value < 0) {
+                    return n.value;
+                }
+                return 0;
+            }
+
+            if (n.value < 0) {
+                return n.value;
+            }
+            return Math.abs(this.value-n.value);
+        }
+});
 /**
  * Copyright (C) 2012 Heiko Irrgang <hi@93i.de>
  * 
@@ -4841,7 +6221,7 @@ gamvas.ActorState = gamvas.Class.extend({
  *
  * Parameters:
  *
- * name - a unique name in the game world
+ * name - a unique name in the game world or false to let the name autogenerate
  * x/y - the position of the actors center in the world (optional)
  *
  * See:
@@ -4879,7 +6259,7 @@ gamvas.Actor = gamvas.Class.extend({
          *
          * The name of the actor
          */
-        this.name = (name) ? name : 'unnamed';
+        this.name = (name) ? name : 'unnamed_'+this.objectID();
 
         /*
          * Variable: position
@@ -5261,8 +6641,13 @@ gamvas.Actor = gamvas.Class.extend({
      *
      * Although Box2D documentation requires a counter clock wise (CCW) polygon, gamvas does
      * require you to secify a clock wise polygon, as in the gamvas worl, the y axis
-     * rpresents screen pixels and therefor runs down, whereas Box2D world represents
+     * represents screen pixels and therefor runs down, whereas Box2D world represents
      * a real life world, where positive values on the y axis run up.
+     *
+     * Important:
+     *
+     * Box2D does not collide concave polygons (as in curving inward, like a skateboard
+     * ramp), make sure your polygons are convex (as in curving outward, like a hexagon).
      *
      * Parameters:
      *

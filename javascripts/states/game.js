@@ -406,8 +406,10 @@ gamvas.states.GameState = gamvas.State.extend(
      * @param key
      */
     
-    onKeyDown: function(key)
-    {
+     onKeyDown: function (key, _character, event)
+     {
+        event.preventDefault()
+
         // Clavier
         var keyboard = gamvas.key;
         
